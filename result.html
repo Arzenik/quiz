@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Résultats du Quizz</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="result-container">
+        <h1>Félicitations !</h1>
+        <p>Votre score est : <span id="score"></span>/6</p>
+        <button onclick="window.location.href = 'index.html';">Refaire le quizz</button>
+    </div>
+
+    <script>
+        // Récupérer le score depuis localStorage
+        window.onload = () => {
+            const score = localStorage.getItem("quizScore");
+            document.getElementById("score").textContent = score;
+        }
+    </script>
+</body>
+
+</html>

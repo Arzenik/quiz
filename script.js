@@ -1,133 +1,100 @@
+// Sélection des éléments
+const questionElement = document.getElementById("question");
+const answersContainer = document.querySelector(".answers-container");
+const timerElement = document.getElementById("timer");
+
+let timeRemaining = 30; // Temps global en secondes
+let currentQuestionIndex = 0; // Index de la question actuelle
+let timerInterval; // Référence du timer
+
+// Questions et réponses
 const questions = [
     {
         question: "Quel est le capital de la France ?",
         answers: ["Paris", "Londres", "Berlin", "Madrid"],
-        correct: "Paris"
+        correct: 0,
     },
     {
-        question: "Quelle est la couleur du ciel ?",
-        answers: ["Rouge", "Bleu", "Vert", "Jaune"],
-        correct: "Bleu"
+        question: "Quel est le plus grand océan du monde ?",
+        answers: ["Atlantique", "Arctique", "Indien", "Pacifique"],
+        correct: 3,
     },
     {
-        question: "Combien de continents y a-t-il ?",
-        answers: ["5", "6", "7", "8"],
-        correct: "7"
+        question: "Combien de jours dans une année bissextile ?",
+        answers: ["364", "365", "366", "367"],
+        correct: 2,
     },
-    {
-        question: "Quelle est la capitale des États-Unis ?",
-        answers: ["New York", "Washington, D.C.", "Los Angeles", "Chicago"],
-        correct: "Washington, D.C."
-    },
-    {
-        question: "Quel est l'élément chimique symbolisé par 'H' ?",
-        answers: ["Oxygène", "Hydrogène", "Carbone", "Azote"],
-        correct: "Hydrogène"
-    },
-    {
-        question: "Quel est l'animal le plus rapide du monde ?",
-        answers: ["Guépard", "Aigle", "Lion", "Tigre"],
-        correct: "Guépard"
-    }
 ];
 
-let currentQuestion = 0;
-let score = 0;
-let timer = 5;
-let timerInterval;
-
-const questionElement = document.getElementById("question");
-const answersElement = document.querySelectorAll(".answer-btn");
-const timerElement = document.getElementById("timer");
-const nextButton = document.getElementById("next-btn");
-const scoreElement = document.getElementById("score");
-
-function shuffleAnswers(answers) {
-    // Mélanger les réponses aléatoirement
-    for (let i = answers.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [answers[i], answers[j]] = [answers[j], answers[i]];
-    }
-    return answers;
-}
-
-function resetAnswerButtons() {
-    // Réinitialiser la couleur de fond des boutons
-    answersElement.forEach(btn => {
-        btn.style.backgroundColor = ''; // Réinitialiser la couleur de fond
-    });
-}
-
-function loadQuestion() {
-    if (currentQuestion < questions.length) {
-        const currentQ = questions[currentQuestion];
-
-        // Mélanger les réponses avant de les afficher
-        const shuffledAnswers = shuffleAnswers([...currentQ.answers]);
-
-        questionElement.textContent = currentQ.question;
-
-        // Mettre à jour les réponses sur les boutons
-        answersElement.forEach((btn, index) => {
-            btn.textContent = shuffledAnswers[index];
-            btn.onclick = () => checkAnswer(shuffledAnswers[index], currentQ.correct, currentQ);
-        });
-
-        resetAnswerButtons();  // Réinitialiser la couleur de fond avant chaque nouvelle question
-        startTimer();
-    } else {
-        // Enregistrer le score dans le localStorage pour le récupérer sur la page des résultats
-        localStorage.setItem("quizScore", score);
-        window.location.href = "result.html";  // Rediriger vers la page des résultats
-    }
-}
-
+// Fonction pour démarrer le timer
 function startTimer() {
-    timer = 5;
-    timerElement.textContent = timer;
+    timeRemaining = 30;
+    timerElement.textContent = timeRemaining;
+
     timerInterval = setInterval(() => {
-        timer--;
-        timerElement.textContent = timer;
-        if (timer <= 0) {
+        timeRemaining--;
+        timerElement.textContent = timeRemaining;
+
+        if (timeRemaining <= 0) {
             clearInterval(timerInterval);
-            nextButton.style.display = "block"; // Afficher le bouton "Next"
+            alert("Temps écoulé !");
+            showNextQuestion();
         }
     }, 1000);
 }
 
-function checkAnswer(selectedAnswer, correctAnswer, currentQ) {
-    const isCorrect = selectedAnswer === correctAnswer;
+// Fonction pour afficher une question
+function showQuestion(index) {
+    const currentQuestion = questions[index];
+    questionElement.textContent = currentQuestion.question;
+    answersContainer.innerHTML = ""; // Vide les boutons précédents
 
-    // Modifier la couleur de fond des réponses
-    if (isCorrect) {
-        // Marquer la réponse correcte en vert
-        answersElement.forEach((btn) => {
-            if (btn.textContent === selectedAnswer) {
-                btn.style.backgroundColor = 'green';
-            }
-        });
-        score++;  // Incrémenter le score pour une bonne réponse
-    } else {
-        // Marquer la réponse incorrecte en rouge
-        answersElement.forEach((btn) => {
-            if (btn.textContent === selectedAnswer) {
-                btn.style.backgroundColor = 'red';
-            }
-            if (btn.textContent === correctAnswer) {
-                btn.style.backgroundColor = 'green'; // Afficher la bonne réponse en vert
-            }
-        });
-    }
+    currentQuestion.answers.forEach((answer, i) => {
+        const button = document.createElement("button");
+        button.classList.add("answer-btn");
+        button.textContent = answer;
 
-    // Passer à la question suivante ou afficher le score
-    clearInterval(timerInterval);
-    nextButton.style.display = "block"; // Afficher le bouton pour passer à la question suivante
+        // Ajoute un événement au clic
+        button.addEventListener("click", () => handleAnswer(i, button));
+        answersContainer.appendChild(button);
+    });
 }
 
-nextButton.onclick = () => {
-    currentQuestion++;
-    nextButton.style.display = "none";
-    loadQuestion();
-};
+// Fonction pour gérer la réponse de l'utilisateur
+function handleAnswer(selectedIndex, selectedButton) {
+    const currentQuestion = questions[currentQuestionIndex];
+    const buttons = answersContainer.querySelectorAll(".answer-btn");
 
-loadQuestion();
+    // Marque les réponses comme correctes ou incorrectes
+    buttons.forEach((button, index) => {
+        if (index === currentQuestion.correct) {
+            button.classList.add("correct");
+        } else if (index === selectedIndex) {
+            button.classList.add("incorrect");
+        }
+        button.disabled = true; // Désactive les boutons après la sélection
+    });
+
+    // Attendre 1 seconde, puis passer à la question suivante
+    setTimeout(() => {
+        showNextQuestion();
+    }, 1000);
+}
+
+// Fonction pour afficher la prochaine question
+function showNextQuestion() {
+    currentQuestionIndex++;
+
+    if (currentQuestionIndex < questions.length) {
+        showQuestion(currentQuestionIndex);
+        startTimer();
+    } else {
+        clearInterval(timerInterval);
+        alert("Quiz terminé !");
+        // Vous pouvez ajouter ici une redirection ou afficher les résultats
+    }
+}
+
+// Initialisation du quiz
+showQuestion(currentQuestionIndex);
+startTimer();

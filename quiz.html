@@ -10,16 +10,16 @@
 
 <body>
     <div class="quiz-container">
-        <h2 id="question">Quel est le capital de la France ?</h2>
+        <div id="timer">Temps restant : <span id="time-left">30</span> secondes</div>
+        <h2 id="question">Quel est la capital de la France ?</h2>
         <div class="answers-container">
             <button class="answer-btn">Paris</button>
             <button class="answer-btn">Londres</button>
             <button class="answer-btn">Berlin</button>
             <button class="answer-btn">Madrid</button>
         </div>
-        <div class="timer">
-            Temps restant : <span id="timer">30</span> secondes
-        </div>
+        <!-- Compteur des réponses (historique) -->
+        <div id="progress" class="progress-container"></div>
     </div>
 
     <script src="script.js"></script>

@@ -1,100 +1,95 @@
-// Sélection des éléments
-const questionElement = document.getElementById("question");
-const answersContainer = document.querySelector(".answers-container");
-const timerElement = document.getElementById("timer");
-
-let timeRemaining = 30; // Temps global en secondes
-let currentQuestionIndex = 0; // Index de la question actuelle
-let timerInterval; // Référence du timer
-
-// Questions et réponses
+// Variables globales
 const questions = [
-    {
-        question: "Quel est le capital de la France ?",
-        answers: ["Paris", "Londres", "Berlin", "Madrid"],
-        correct: 0,
-    },
-    {
-        question: "Quel est le plus grand océan du monde ?",
-        answers: ["Atlantique", "Arctique", "Indien", "Pacifique"],
-        correct: 3,
-    },
-    {
-        question: "Combien de jours dans une année bissextile ?",
-        answers: ["364", "365", "366", "367"],
-        correct: 2,
-    },
+    { question: "Quel est la capitale de la France ?", correctAnswer: "Paris", answers: ["Paris", "Londres", "Berlin", "Madrid"] },
+    { question: "Combien de jours dans une année bissextile ?", correctAnswer: "366", answers: ["365", "366", "364", "360"] },
+    { question: "Quelle est la couleur du ciel ?", correctAnswer: "Bleu", answers: ["Bleu", "Vert", "Rouge", "Jaune"] },
+    { question: "Combien de continents existe-t-il ?", correctAnswer: "7", answers: ["6", "7", "8", "5"] },
+    { question: "Qui a écrit '1984' ?", correctAnswer: "George Orwell", answers: ["George Orwell", "J.K. Rowling", "Hemingway", "F. Scott Fitzgerald"] },
+    { question: "Quel est le plus grand océan ?", correctAnswer: "Pacifique", answers: ["Atlantique", "Indien", "Arctique", "Pacifique"] }
 ];
 
-// Fonction pour démarrer le timer
-function startTimer() {
-    timeRemaining = 30;
-    timerElement.textContent = timeRemaining;
+let currentQuestionIndex = 0;
+let correctAnswersCount = 0;
+let timerInterval;
+let timeLeft = 30;
+let answered = [];
 
-    timerInterval = setInterval(() => {
-        timeRemaining--;
-        timerElement.textContent = timeRemaining;
+// Elements du DOM
+const questionElement = document.getElementById('question');
+const answersContainer = document.querySelector('.answers-container');
+const progressContainer = document.getElementById('progress');
+const timeLeftElement = document.getElementById('time-left');
 
-        if (timeRemaining <= 0) {
-            clearInterval(timerInterval);
-            alert("Temps écoulé !");
-            showNextQuestion();
-        }
-    }, 1000);
-}
-
-// Fonction pour afficher une question
-function showQuestion(index) {
-    const currentQuestion = questions[index];
+// Fonction pour afficher la question et les réponses
+function loadQuestion() {
+    const currentQuestion = questions[currentQuestionIndex];
     questionElement.textContent = currentQuestion.question;
-    answersContainer.innerHTML = ""; // Vide les boutons précédents
+    answersContainer.innerHTML = ''; // Vider les réponses existantes
 
-    currentQuestion.answers.forEach((answer, i) => {
-        const button = document.createElement("button");
-        button.classList.add("answer-btn");
+    // Créer les boutons de réponse
+    currentQuestion.answers.forEach(answer => {
+        const button = document.createElement('button');
+        button.classList.add('answer-btn');
         button.textContent = answer;
-
-        // Ajoute un événement au clic
-        button.addEventListener("click", () => handleAnswer(i, button));
+        button.addEventListener('click', () => handleAnswer(answer));
         answersContainer.appendChild(button);
     });
 }
 
 // Fonction pour gérer la réponse de l'utilisateur
-function handleAnswer(selectedIndex, selectedButton) {
+function handleAnswer(selectedAnswer) {
     const currentQuestion = questions[currentQuestionIndex];
-    const buttons = answersContainer.querySelectorAll(".answer-btn");
+    const isCorrect = selectedAnswer === currentQuestion.correctAnswer;
 
-    // Marque les réponses comme correctes ou incorrectes
-    buttons.forEach((button, index) => {
-        if (index === currentQuestion.correct) {
-            button.classList.add("correct");
-        } else if (index === selectedIndex) {
-            button.classList.add("incorrect");
-        }
-        button.disabled = true; // Désactive les boutons après la sélection
-    });
+    if (isCorrect) {
+        correctAnswersCount++;
+    }
 
-    // Attendre 1 seconde, puis passer à la question suivante
+    // Ajouter l'icône de la réponse (check ou croix)
+    const bubble = document.createElement('div');
+    bubble.classList.add('bubble', isCorrect ? 'correct' : 'incorrect');
+    bubble.innerHTML = isCorrect ? '&#10004;' : '&#10060;';
+    progressContainer.appendChild(bubble);
+
+    // Passer à la question suivante après 1 seconde
     setTimeout(() => {
-        showNextQuestion();
+        currentQuestionIndex++;
+        if (currentQuestionIndex < questions.length) {
+            loadQuestion();
+            resetTimer();
+        } else {
+            endQuiz();
+        }
     }, 1000);
 }
 
-// Fonction pour afficher la prochaine question
-function showNextQuestion() {
-    currentQuestionIndex++;
-
-    if (currentQuestionIndex < questions.length) {
-        showQuestion(currentQuestionIndex);
-        startTimer();
-    } else {
-        clearInterval(timerInterval);
-        alert("Quiz terminé !");
-        // Vous pouvez ajouter ici une redirection ou afficher les résultats
-    }
+// Fonction pour afficher la page de fin du quiz
+function endQuiz() {
+    questionElement.textContent = `Quiz terminé ! Vous avez ${correctAnswersCount} bonnes réponses sur ${questions.length}.`;
+    answersContainer.innerHTML = ''; // Supprimer les boutons de réponse
+    progressContainer.innerHTML = ''; // Réinitialiser le compteur
 }
 
-// Initialisation du quiz
-showQuestion(currentQuestionIndex);
+// Fonction pour démarrer et gérer le timer
+function startTimer() {
+    timerInterval = setInterval(() => {
+        timeLeft--;
+        timeLeftElement.textContent = timeLeft;
+        if (timeLeft === 0) {
+            clearInterval(timerInterval);
+            handleAnswer(""); // Fin du temps, répondre automatiquement
+        }
+    }, 1000);
+}
+
+// Fonction pour réinitialiser le timer
+function resetTimer() {
+    clearInterval(timerInterval);
+    timeLeft = 30;
+    timeLeftElement.textContent = timeLeft;
+    startTimer();
+}
+
+// Démarrer le quiz
+loadQuestion();
 startTimer();
